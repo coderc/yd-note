@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="./css/style.css" rel="stylesheet" />
+<link href="./css/media.css" rel="stylesheet" />
+<script>
+    window.addEventListener("load",function(){
+        let loading = document.querySelector("#loading");
+        loading.remove();
+    });
+</script>
+<script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.9/vue.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/axios/0.21.1/axios.min.js"></script>
+<title>
+    个人笔记 - coder
+</title>
+</head>
+<body>
+    <div class="loading" id="loading">
+        <div class="tip">
+            <img src="./images/loading.gif" />
+            <p>加载中...</p>
+        </div>
+    </div>
+    <div id="app">
+        <nav class="navbar">
+            <div class="navbar-body">
+                <div class="navbar-left">
+                    <div class="navbar-title">
+                        <h1>{{title}}</h1>
+                    </div>
+                </div>
+                <div class="navbar-right">
+                    <ul class="navbar-list">
+                        <li class="navbar-item">
+                            <a href="/">首页</a>
+                        </li>
+                        <li v-for="item of navbars" class="navbar-item">
+                            <a :href="'/?id='+item.id">{{item.title}}</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <!-- 标题 -->
+        <div class="cover">
+            <div class="title">
+                <h2>努力才会有收获！</h2>
+            </div>
+        </div>
+
+        <!-- <div class="group-dir">
+            <ul class="dir-tags">
+                <li class="dir">
+                    <a href="#">
+                        编程
+                    </a>
+                </li>
+            </ul>
+        </div> -->
+
+        <!-- 文章 -->
+
+        <div class="container">
+            <div class="search">
+                <input placeholder="搜索当前页面的文章" v-model="searchText" />
+            </div>
+            <div class="stitle">
+                <h2>文章</h2>
+            </div>
+            <ul class="article-list">
+                <li v-for="article of showArticles" class="article-item" @click="goto(article.url)">
+                    <div class="title">
+                        <h3 v-html="article.title"></h3>
+                    </div>
+                    <div class="content">
+                        {{article.content}}
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <p>基于有道云笔记和vercel的一个个人小站</p>
+        </div>
+    </div>
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+    <script>
+        let url = location.href;
+        let id = url.split("id=")[1];
+        id = id ? id : "";
+        new Vue({
+            el: "#app",
+            data: {
+                title: "个人笔记",
+                navbars: [],
+                files: [],
+                showArticles: [],
+                articles: [],
+                searchText: ""
+            },
+            methods: {
+                // 打开链接
+                goto(url) {
+                    window.open(url);
+                },
+                // 获取数据
+                getData() {
+                    let self = this;
+                    // 执行请求
+                    axios.get("/api/files?id=" + id).then(function (res) {
+                        let data = (res.data);
+                        if (data.code == 200) {
+                            let arr = data.data;
+                            let navbars = [];
+                            let files = [];
+                            let articles = [];
+                            arr.forEach(function (item) {
+                                let exp = item.name.split(".")
+                                let ext = exp.pop();
+                                let name = exp.join(".");
+                                if (item.isDir) {
+                                    navbars.push({
+                                        id: item.fid,
+                                        title: item.name
+                                    });
+                                }
+                                // 如果是这两种其中一种则认为是个文章
+                                if (["note", "md"].indexOf(ext) >= 0) {
+                                    articles.push({
+                                        title: self.effect(name),
+                                        createTime: new Date(item.createTime * 1000).toLocaleString(),
+                                        updateTime: new Date(item.updateTime * 1000).toLocaleString(),
+                                        content: self.effect(item.profiles),
+                                        url: item.viewUrl,
+                                        author: item.author
+                                    })
+                                }
+                                files.push(item);
+                            });
+                            self.navbars = navbars;
+                            self.files = files;
+                            self.articles = articles;
+                            self.showArticles = articles;
+                        }
+                    }).catch(function (err) {
+                        alert("数据请求失败！");
+                    })
+                },
+                effect(txt){
+                    txt = txt.replace(/\[(.+?)\]/g,"<span class=\"tag\">$1</span>");
+                    return txt;
+                }
+            },
+            mounted() {
+                this.getData();
+            },
+            watch: {
+                // 监听搜索文字的变化
+                searchText(val) {
+                    let showArticles = [];
+                    if (val.length > 0) {
+                        for (let article of this.articles) {
+                            // 将文本转换为小写，这样为了不区分大小写
+                            if (article.title.toLocaleLowerCase().indexOf(val.toLocaleLowerCase()) >= 0 || article.content.toLocaleLowerCase().indexOf(val.toLocaleLowerCase()) >= 0) {
+                                showArticles.push(article);
+                            }
+                        }
+                    } else {
+                        showArticles = this.articles;
+                    }
+                    this.showArticles = showArticles;
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>
