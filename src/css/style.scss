@@ -41,7 +41,6 @@
   width: 100%;
   padding: 2rem 10rem;
   box-sizing: border-box;
-  min-height: 50rem;
   .stitle {
     margin-top: 3rem;
   }
@@ -61,6 +60,7 @@
   }
 
   .article-list {
+    min-height: 50rem;
     .article-item {
       margin: 1.5rem 0;
       font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
@@ -93,7 +93,6 @@
 }
 
 .footer {
-  padding: 2rem 10rem;
   background-color: #000;
   color: #fff;
 }

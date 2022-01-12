@@ -24,8 +24,6 @@ export class YoudaoNote {
   private shareKey: string = "";
   // 这是唯一随机id
   private gid: string = "";
-  // cookie
-  private cookie: string = "";
   // fid
   private fid: string = "";
   // 分享的链接
@@ -104,7 +102,6 @@ export class YoudaoNote {
     let dataList: any[] = data[2];
     let flist: NFile[] = dataList.map((info) => {
       let path: string = info.p;
-      console.log(info);
       
       let fid: string = path.split("/").pop() as string;
       let shareKey: string = this.shareKey;

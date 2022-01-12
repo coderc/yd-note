@@ -5,18 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link href="./css/style.css" rel="stylesheet" />
 <link href="./css/media.css" rel="stylesheet" />
-<script>
-    window.addEventListener("load",function(){
-        let loading = document.querySelector("#loading");
-        loading.remove();
-    });
-</script>
 <script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.9/vue.min.js"></script>
 <script src="https://cdn.bootcdn.net/ajax/libs/axios/0.21.1/axios.min.js"></script>
 <title>
-    个人笔记 - coder
+    个人笔记 - coder128
 </title>
 </head>
+
 <body>
     <div class="loading" id="loading">
         <div class="tip">
@@ -52,17 +47,6 @@
             </div>
         </div>
 
-        <!-- <div class="group-dir">
-            <ul class="dir-tags">
-                <li class="dir">
-                    <a href="#">
-                        编程
-                    </a>
-                </li>
-            </ul>
-        </div> -->
-
-        <!-- 文章 -->
 
         <div class="container">
             <div class="search">
@@ -84,7 +68,9 @@
         </div>
 
         <div class="footer">
-            <p>基于有道云笔记和vercel的一个个人小站</p>
+            <div class="container">
+                <p>基于有道云笔记和vercel的一个个人小站</p>
+            </div>
         </div>
     </div>
     <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
@@ -97,10 +83,17 @@
             el: "#app",
             data: {
                 title: "个人笔记",
+                // 导航
                 navbars: [],
+                // 板块
+                plates: [],
+                // 文件
                 files: [],
+                // 显示的文章
                 showArticles: [],
+                // 总文章
                 articles: [],
+                // 搜索词
                 searchText: ""
             },
             methods: {
@@ -114,17 +107,24 @@
                     // 执行请求
                     axios.get("/api/files?id=" + id).then(function (res) {
                         let data = (res.data);
+                        let loading = document.querySelector("#loading");
+                        loading.remove();
                         if (data.code == 200) {
                             let arr = data.data;
                             let navbars = [];
                             let files = [];
                             let articles = [];
+                            let plates = [];
                             arr.forEach(function (item) {
                                 let exp = item.name.split(".")
                                 let ext = exp.pop();
                                 let name = exp.join(".");
                                 if (item.isDir) {
                                     navbars.push({
+                                        id: item.fid,
+                                        title: item.name
+                                    });
+                                    plates.push({
                                         id: item.fid,
                                         title: item.name
                                     });
@@ -146,13 +146,16 @@
                             self.files = files;
                             self.articles = articles;
                             self.showArticles = articles;
+                            self.plates = plates;
                         }
                     }).catch(function (err) {
                         alert("数据请求失败！");
+                        let loading = document.querySelector("#loading");
+                        loading.remove();
                     })
                 },
-                effect(txt){
-                    txt = txt.replace(/\[(.+?)\]/g,"<span class=\"tag\">$1</span>");
+                effect(txt) {
+                    txt = txt.replace(/\[(.+?)\]/g, "<span class=\"tag\">$1</span>");
                     return txt;
                 }
             },
